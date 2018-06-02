@@ -1,0 +1,26 @@
+---
+title: "Explore the NOAA Storm Database for helath and economic consequences"
+author: "Mikkel Bernt Buchvardt"
+date: "2 jun 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd("C:/Users/Z6MBB/OneDrive - KMD/ML-ekspert/coursera/reprod/reproducible-research-project-2")
+
+```
+
+## Synopsis
+
+
+```{r synopsis}
+
+```
+
+## Data processing
+
+```{r data_processing}
+
+```
+
