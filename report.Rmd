@@ -12,15 +12,172 @@ setwd("C:/Users/Z6MBB/OneDrive - KMD/ML-ekspert/coursera/reprod/reproducible-res
 ```
 
 ## Synopsis
-
+This short analysis explores the total consequences of different types of storms as well as the average. Tornado's are responsible for allot of damage, injuries and fatalities in total, however this is an effect of the high frequency of TORNADO'S. The one time TROPICAL STORM GORDON on the other hand, brought severe consequences and is highly placed when you focus on the average consequences. 
 
 ```{r synopsis}
 
 ```
 
 ## Data processing
+In this section the data base is downloaded and explored.
 
-```{r data_processing}
+```{r download_data, message= FALSE, eval=FALSE}
+url.data <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
+#url.description <- "https://d396qusza40orc.cloudfront.net/repdata%2Fpeer2_doc%2Fpd01016005curr.pdf"#
+download.file(url = url.data, destfile = "stormdata.csv.bz2")
+```
+
+
+```{r load_data, warning=FALSE}
+data.raw <-read.table("stormdata.csv.bz2", sep = ",", header = TRUE)
+str(data.raw)
+```
+
+It seams that there is an entire column that has no values. This is removed.
+
+```{r exlpore_data}
+
+# remove columns with only NAs fram validation set
+
+ncol(data.raw)
+data.raw[sapply(data.raw, function(x) all(is.na(x)))] <- NULL
+ncol(data.raw)
 
 ```
+
+
+## Analysis
+In the following section I will look at the health- and economic consequences of the events in the data set.
+
+### Health
+Across the United States, which types of events (as indicated in the \color{red}{\verb|EVTYPE|}EVTYPE variable) are most harmful with respect to population health?
+```{r health, message=FALSE, fig.width=14, fig.height=14}
+library(tidyverse)
+
+health.data <- data.raw %>% select(EVTYPE, FATALITIES, INJURIES) %>% 
+        group_by(EVTYPE) %>% summarise(n =n(), total_fatalities = sum(FATALITIES), total_injuries = sum(INJURIES)) %>% 
+        arrange(total_fatalities, total_injuries) %>% 
+        mutate(EVTYPE = factor(EVTYPE, EVTYPE))
+
+
+str(health.data)
+
+
+
+plot.total.fatalities <- ggplot(health.data %>% top_n(50, total_fatalities)) +
+        geom_bar(aes(x=EVTYPE, y=total_fatalities, fill = EVTYPE), stat = "identity")+
+        theme(legend.position="none")+
+        coord_flip()+
+        ggtitle("Top 50 types total fatalities")
+
+plot.avg.fatalities <- health.data %>% mutate(avg_fatalities = (total_fatalities / n)) %>% 
+        arrange(avg_fatalities) %>% 
+        mutate(EVTYPE = factor(EVTYPE, EVTYPE)) %>% 
+        top_n(50, avg_fatalities) %>% 
+        ggplot()+
+        geom_bar(aes(x=EVTYPE, y=avg_fatalities, fill = EVTYPE), stat = "identity")+
+        theme(legend.position="none")+
+        coord_flip()+
+        ggtitle("Top 50 types avg fatalities")
+
+plot.total.injuries <- health.data %>%
+        arrange(total_injuries) %>% 
+        mutate(EVTYPE = factor(EVTYPE, EVTYPE)) %>% 
+        top_n(59, total_injuries) %>% 
+        ggplot()+
+        geom_bar(aes(x=EVTYPE, y=total_injuries, fill = EVTYPE), stat = "identity")+
+        theme(legend.position="none")+
+        coord_flip()+
+        ggtitle("Top 50 types total injuries")
+
+plot.avg.injuries <- health.data %>% mutate(avg_injuries = (total_injuries / n)) %>% 
+        arrange(avg_injuries) %>% 
+        mutate(EVTYPE = factor(EVTYPE, EVTYPE)) %>% 
+        top_n(50, avg_injuries) %>% 
+        ggplot()+
+        geom_bar(aes(x=EVTYPE, y=avg_injuries, fill = EVTYPE), stat = "identity")+
+        theme(legend.position="none")+
+        coord_flip()+
+        ggtitle("Top 50 types avg injuries")
+
+library(gridExtra)     
+grid.arrange(plot.total.fatalities,
+             plot.avg.fatalities,
+             plot.total.injuries,
+             plot.avg.injuries,
+             nrow = 2)
+
+```
+
+
+### Economic
+Across the United States, which types of events have the greatest economic consequences?
+
+```{r Economic, message=FALSE, fig.width=14, fig.height=14}
+library(tidyverse)
+
+health.data <- data.raw %>% select(EVTYPE, PROPDMG, CROPDMG) %>% 
+        group_by(EVTYPE) %>% summarise(n =n(), total_PROPDMG = sum(PROPDMG), total_CROPDMG = sum(CROPDMG)) %>% 
+        arrange(total_PROPDMG, total_CROPDMG) %>% 
+        mutate(EVTYPE = factor(EVTYPE, EVTYPE))
+
+
+str(health.data)
+
+
+
+plot.total.PROPDMG <- ggplot(health.data %>% top_n(50, total_PROPDMG)) +
+        geom_bar(aes(x=EVTYPE, y=total_PROPDMG, fill = EVTYPE), stat = "identity")+
+        theme(legend.position="none")+
+        coord_flip()+
+        ggtitle("Top 50 types total property dammage")
+
+plot.avg.PROPDMG <- health.data %>% mutate(avg_PROPDMG = (total_PROPDMG / n)) %>% 
+        arrange(avg_PROPDMG) %>% 
+        mutate(EVTYPE = factor(EVTYPE, EVTYPE)) %>% 
+        top_n(50, avg_PROPDMG) %>% 
+        ggplot()+
+        geom_bar(aes(x=EVTYPE, y=avg_PROPDMG, fill = EVTYPE), stat = "identity")+
+        theme(legend.position="none")+
+        coord_flip()+
+        ggtitle("Top 50 types avg property dammage")
+
+plot.total.CROPDMG <- health.data %>%
+        arrange(total_CROPDMG) %>% 
+        mutate(EVTYPE = factor(EVTYPE, EVTYPE)) %>% 
+        top_n(59, total_CROPDMG) %>% 
+        ggplot()+
+        geom_bar(aes(x=EVTYPE, y=total_CROPDMG, fill = EVTYPE), stat = "identity")+
+        theme(legend.position="none")+
+        coord_flip()+
+        ggtitle("Top 50 types total crop dammage")
+
+plot.avg.CROPDMG <- health.data %>% mutate(avg_CROPDMG = (total_CROPDMG / n)) %>% 
+        arrange(avg_CROPDMG) %>% 
+        mutate(EVTYPE = factor(EVTYPE, EVTYPE)) %>% 
+        top_n(50, avg_CROPDMG) %>% 
+        ggplot()+
+        geom_bar(aes(x=EVTYPE, y=avg_CROPDMG, fill = EVTYPE), stat = "identity")+
+        theme(legend.position="none")+
+        coord_flip()+
+        ggtitle("Top 50 types avg crop dammage")
+
+library(gridExtra)     
+grid.arrange(plot.total.PROPDMG,
+             plot.avg.PROPDMG,
+             plot.total.CROPDMG,
+             plot.avg.CROPDMG,
+             nrow = 2)
+
+```
+
+
+## Results
+
+Looking at the simple bar plots it is evident that looking at the total health- or economic consequences of a given type reveals that a handful of types is responsible for almost all of the consequences. However, if we take the frequency into account and calculate a simple average for each type where the consequence {fatality, injury, crop damage, property damage}, is divided by the number of times the event has occurred. 
+
+This means that although TORNADO is the top type responsible for fatalities and injuries, the top avg fatalities is UNSEASONABLY WARM AND DRY and the top avg injury is the TROPICAL STORM GORDON.
+
+The top type responsible for total property damage is also TORNADO where the top type responsible for crop damage is HAIL.
+The top type responsible for avg property damage is RIVER AND STREAM FLOOD and for crop damage it is the TROPICAL STORM GORDON again.
 
